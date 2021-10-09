@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <title>Document</title>
+</head>
+<body>
+    <div id="titlespace">
+        <h1>HMS</h1>
+    </div>
+    <div id="workspace">
+        <div id="leftpanel">
+            <div id="leftpaneltitle">
+                <h3>Patients List</h3>
+            </div>
+            <table>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                </tr>
+                <tr class="user unhighlighted" onclick="display(this)">
+                    <td>HMS204</td>
+                    <td>John</td>
+                </tr>
+                <tr class="user unhighlighted" onclick="display(this)">
+                    <td>HMS204</td>
+                    <td>John</td>
+                </tr>
+                <tr class="user unhighlighted" onclick="display(this)">
+                    <td>HMS204</td>
+                    <td>John</td>
+                </tr>
+                <tr class="user unhighlighted" onclick="display(this)">
+                    <td>HMS204</td>
+                    <td>John</td>
+                </tr>
+            </table>
+        </div>
+        <div id="details">
+            
+            <div id="contactinfo">
+            </div>
+            <div id="logtitle">
+                <h3>Patient Logs</h3>
+            </div>
+            <div id="tablespace">
+                <table>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Entry Date</th>
+                        <th>Entry Time</th>
+                        <th>Exit Date</th>
+                        <th>Exit Time</th>
+                        <th>Delete</th>
+                    </tr>
+                </table>
+            </div>
+            <button id="addlog">Add_Log</button>
+            <button id="save">Save</button>
+        </div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        var socket = io();  
+   
+        var selecteduser="";
+        function display(user){
+             selecteduser=user;
+            socket.emit('display',selecteduser);
+        }
+
+        function save(){
+            var ID = selecteduser;
+            var entriestable = document.getElementById("entrieslist");
+            var entries = entriestable.getElementsByClassName('tableentry');
+            var entrieslist = [];
+            
+            for(let i = 0; i < entries.length; i++){
+                    var unattributes = entries[i].getElementsByClassName('uneditable');
+                    var attributes = entries[i].getElementsByClassName('editable');
+                    var markdelete = entries[i].getElementsByClassName('mark');
+                    if(markdelete[0].classList.contains('marked'))
+                    {
+                        socket.emit('delete',selecteduser,[attributes]);
+                        continue;
+                    }
+                    socket.emit('save',selecteduser,[attributes]);
+            }
+        }
+        function addlog(){
+            var ID = selecteduser;
+            var entriestable = document.getElementById("entrieslist");
+            //console.log(entriesDatabase[ID].length);
+            //var entries = entriestable.getElementsByClassName('tableentry');
+            inhtml = "<tr><th>ID</th><th>Name</th><th>Entry Date</th><th>Entry Time</th><th>Exit Date</th><th>Exit Time</th><th>Delete</th><tr>";
+            for(Details of entriesDatabase[ID]){
+                        inhtml+="<tr class=\"tableentry\">"
+                        inhtml+="<td class=\"uneditable\">"+ID+"</td>"
+                        inhtml+="<td class=\"uneditable\">"+userDatabase[ID].name+"</td>"
+                        inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+Details.entrydate+"\"></td>"
+                        inhtml+="<td class=\"editable\" ><input type=\"text\" value=\""+Details.entrytime+"\"></td>"
+                        inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+Details.exitdate+"\"></td>"
+                        inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+Details.exittime+"\"></td>"
+                        inhtml+="<td class=\"mark\" onclick=\"marktoggle(this);\">X</td></tr>";
+            }
+            inhtml+="<tr>"
+            inhtml+="<td class=\"uneditable\">"+ID+"</td>"
+            inhtml+="<td class=\"uneditable\">"+userDatabase[ID].name+"</td>"
+            inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+""+"\"></td>"
+            inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+""+"\"></td>"
+            inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+""+"\"></td>"
+            inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+""+"\"></td>"
+            inhtml+="<td class=\"mark\" onclick=\"marktoggle(this);\">X</td></tr>";
+
+            entriestable.innerHTML=inhtml;
+        }
+
+        socket.on('entries',(result) => {
+            var ID = selecteduser.children[0].innerHTML;
+            selecteduser = ID;
+            var name = selecteduser.children[1].innerHTML;
+            var contact = document.getElementById('contactinfo');
+            inhtml ="Name: <span><input type=\"text\" id= 'name' value='"+result[0].Name+"'></span><br>"
+            inhtml+="Age: <span><input type=\"text\" id= 'age' value="+result[0].Age+"></span><br>"
+            inhtml+="Phone no: <span><input type=\"text\" id= 'phoneno' value=\""+result[0].PhoneNo+"\"></span><br>"
+            inhtml+="Email ID: <span><input type=\"text\" id= 'emailid' value=\""+result[0].EmailID+"\"></span><br>"
+            inhtml+="<button type=\"submit\" onclick=\"update()\">Save</button>"
+            contact.innerHTML=inhtml;
+            var entries = document.getElementById("entrieslist");
+            inhtml = "<tr><th>ID</th><th>Name</th><th>Entry Date</th><th>Entry Time</th><th>Exit Date</th><th>Exit Time</th><th>Delete</th><tr>";
+                for( var i=0;i<result.length;i++ ){
+                        inhtml+="<tr class=\"tableentry\">"
+                        inhtml+="<td class=\"uneditable\">"+ID+"</td>"
+                        inhtml+="<td class=\"uneditable\">"+name+"</td>"
+                        inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+result[i].entrydate+"\"></td>"
+                        inhtml+="<td class=\"editable\" ><input type=\"text\" value=\""+result[i].entrytime+"\"></td>"
+                        inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+result[i].exitdate+"\"></td>"
+                        inhtml+="<td class=\"editable\"><input type=\"text\" value=\""+result[i].exittime+"\"></td>"
+                        inhtml+="<td class=\"mark\" onclick=\"marktoggle(this);\">X</td></tr>";
+            }
+            entries.innerHTML = inhtml;
+        });
+
+
+    </script>
+</body>
+
+</html>
