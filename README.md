@@ -6,5 +6,5 @@
 ➢ Easy to edit table with directly editable cells and easy-to-use UI.
 
 
-Tools used: 
+<strong>Tools used:</strong> 
     Socket.io, Node.js, Express.js, mySQL, JavaScript, HTML, CSS
